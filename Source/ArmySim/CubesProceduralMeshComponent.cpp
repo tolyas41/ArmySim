@@ -16,6 +16,11 @@ void UCubesProceduralMeshComponent::AddVertices(const FVector& CenterLocation, c
 	const float ExtentsNegative = Extents * -1;
 	auto AddVertices = [&](int32 V1, int32 V2, int32 V3) {
 		Vertices.Add(CenterLocation + FVector(V1, V2, V3));
+		Colors.Add(FColor::Green);
+		normals.Add(FVector(1, 1, 0));
+		UV0.Add(FVector2D(0, 1));
+
+
 	};
 
 	AddVertices(ExtentsNegative, ExtentsNegative, ExtentsNegative); //lower left - 0
@@ -63,9 +68,10 @@ void UCubesProceduralMeshComponent::AddTriangles(const int32 CubeIndex)
 
 }
 
+
 void UCubesProceduralMeshComponent::GenerateCubes()
 {
-	CreateMeshSection(0, Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), TArray<FColor>(), TArray<FProcMeshTangent>(), false);
+	CreateMeshSection(0, Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), Colors, TArray<FProcMeshTangent>(), false);
 }
 
 void UCubesProceduralMeshComponent::TranslateCube(const int32 CubeIndex, const FVector& TranslationVector)
@@ -85,5 +91,14 @@ void UCubesProceduralMeshComponent::RemoveCube(const int32 CubeIndex)
 	}
 
 	UpdateMeshSection(0, Vertices, TArray<FVector>(), TArray<FVector2D>(), TArray<FColor>(), TArray<FProcMeshTangent>());
+}
 
+void UCubesProceduralMeshComponent::UpdateColor(const int32 CubeIndex, const FColor& NewColor)
+{
+	for (int32 i = CubeIndex * 8; i < CubeIndex * 8 + 8; i++)
+	{
+		Colors[i] = NewColor;
+	}
+
+	UpdateMeshSection(0, Vertices, TArray<FVector>(), TArray<FVector2D>(), Colors, TArray<FProcMeshTangent>());
 }

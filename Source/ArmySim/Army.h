@@ -73,6 +73,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Units = "Percent", ClampMin = 0, ClampMax = 100, UIMin = 0, UIMax = 100))
 	float ReplacementSpeed = 5.f;
 
+	UPROPERTY(EditAnywhere)
+	class UMaterial* ArmyMat;
+
 	UFUNCTION()
 	void ApplyDamageToSoldiers();
 

@@ -37,6 +37,7 @@ void AArmy::GenerateArmy()
 	}	
 
 	ArmyMesh->GenerateCubes();
+	if (ArmyMat) ArmyMesh->SetMaterial(0, ArmyMat);
 
 	double secondsElapsed = FPlatformTime::Seconds() - startSeconds;
 	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, FString::Printf(TEXT("Elapsed time for /GenerateArmy/ : %f"), secondsElapsed));
@@ -91,6 +92,9 @@ void AArmy::ApplyDamageToSoldiers()
 			else
 			{
 				Soldier.CurrentHP -= Damage;
+				float hpPercent = static_cast<float>(Soldier.CurrentHP) / static_cast<float>(SoldierMaxHP);
+				FColor NewColor = FColor(255.f * hpPercent, 255.f * (1 - hpPercent), 0.f);
+				ArmyMesh->UpdateColor(Soldier.SoldierID, NewColor);
 			}
 		}
 	}
