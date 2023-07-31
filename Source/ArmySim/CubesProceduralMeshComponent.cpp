@@ -4,7 +4,6 @@
 #include "CubesProceduralMeshComponent.h"
 
 
-
 void UCubesProceduralMeshComponent::AddCubeInfo(const FVector& CenterLocation, const float Extents, const int32 CubeIndex)
 {
 	AddVertices(CenterLocation, Extents);
@@ -17,10 +16,6 @@ void UCubesProceduralMeshComponent::AddVertices(const FVector& CenterLocation, c
 	auto AddVertices = [&](int32 V1, int32 V2, int32 V3) {
 		Vertices.Add(CenterLocation + FVector(V1, V2, V3));
 		Colors.Add(FColor::Green);
-		normals.Add(FVector(1, 1, 0));
-		UV0.Add(FVector2D(0, 1));
-
-
 	};
 
 	AddVertices(ExtentsNegative, ExtentsNegative, ExtentsNegative); //lower left - 0

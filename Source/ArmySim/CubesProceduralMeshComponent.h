@@ -24,8 +24,6 @@ private:
 	TArray<FVector> Vertices;
 	TArray<int32> Triangles;
 	TArray<FColor> Colors;
-	TArray<FVector> normals;
-	TArray<FVector2D> UV0;
 
 	void AddVertices(const FVector& CenterLocation, const float Extents);
 	void AddTriangles(const int32 CubeIndex);
