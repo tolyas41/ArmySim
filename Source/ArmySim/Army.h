@@ -14,24 +14,24 @@ struct FSoldierInfo
 	GENERATED_BODY()
 
 	int32 CurrentHP;
-	int32 MeshSection;
-	float CurrentLocationX;
 	int32 CurrentRow;
+	int32 SoldierID;
+	FVector CurrentLocation;
 	bool bDead = false;
 	bool bMoving = false;
 
 	FSoldierInfo()
 		: CurrentHP(10)
-		, MeshSection(0)
-		, CurrentLocationX(0.f)
 		, CurrentRow(0)
+		, SoldierID(0)
+		, CurrentLocation(0.f, 0.f, 0.f)
 	{}
 
-	FSoldierInfo(int32 newCurrentHP, int32 newMeshSection, float newCurrentLocationX, int32 newCurrentRow)
+	FSoldierInfo(int32 newCurrentHP, int32 newCurrentRow, int32 newSoldierID, FVector newCurrentLocation)
 		: CurrentHP(newCurrentHP)
-		, MeshSection(newMeshSection)
-		, CurrentLocationX(newCurrentLocationX)
 		, CurrentRow(newCurrentRow)
+		, SoldierID(newSoldierID)
+		, CurrentLocation(newCurrentLocation)
 	{}
 };
 
@@ -86,6 +86,7 @@ private:
 	const float SoldierCubeExtents = 25.f;
 
 	FTimerHandle ApplyDamageTH;
+	FTimerHandle FitToSurfaceTH;
 
 	double TimeToMoveSoldiers;
 	int32 SoldiersMoving;
@@ -94,4 +95,5 @@ private:
 	TObjectPtr<UCubesProceduralMeshComponent> ArmyMesh;
 
 	void MoveSoldiers(float DeltaTime);
+	void FitToSurface();
 };

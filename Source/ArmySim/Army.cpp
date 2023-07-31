@@ -31,10 +31,12 @@ void AArmy::GenerateArmy()
 		{
 			FVector Location(i * SoldierDistance * -1, j * SoldierDistance * -1, 0.f); 
 			int32 SoldierID = Columns * i + j;
-			Soldiers.Add(FSoldierInfo(SoldierMaxHP, SoldierID, Location.X, i));
-			ArmyMesh->GenerateCube(Location, SoldierCubeExtents, SoldierID);
+			Soldiers.Add(FSoldierInfo(SoldierMaxHP, i, SoldierID, Location));
+			ArmyMesh->AddCubeInfo(Location, SoldierCubeExtents, SoldierID);
 		}
-	}
+	}	
+
+	ArmyMesh->GenerateCubes();
 
 	double secondsElapsed = FPlatformTime::Seconds() - startSeconds;
 	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, FString::Printf(TEXT("Elapsed time for /GenerateArmy/ : %f"), secondsElapsed));
@@ -46,6 +48,8 @@ void AArmy::GenerateArmy()
 
 	//calculate actual speed of replacement based on distance between soldiers
 	ReplacementSpeed = SoldierDistance * ReplacementSpeed / 100.f;
+
+	GetWorld()->GetTimerManager().SetTimer(FitToSurfaceTH, this, &AArmy::FitToSurface, 0.1f, true);
 
 	SetActorTickEnabled(true);
 }
@@ -74,7 +78,7 @@ void AArmy::ApplyDamageToSoldiers()
 			{
 				Soldier.bDead = true;
 				Soldier.bMoving = false;
-				ArmyMesh->ClearMeshSection(Soldier.MeshSection);
+				ArmyMesh->RemoveCube(Soldier.SoldierID);
 				//tell soldiers down in column to move up
 				for (int32 i = index + Columns; i < Soldiers.Num(); i += Columns)
 				{
@@ -124,12 +128,12 @@ void AArmy::MoveSoldiers(float DeltaTime)
 		}
 		SoldiersMoving++;
 		//move soldier
-		ArmyMesh->TranslateCube(Soldier.MeshSection, FVector(ReplacementSpeed, 0.f, 0.f));
-		Soldier.CurrentLocationX += ReplacementSpeed;
+		ArmyMesh->TranslateCube(Soldier.SoldierID, FVector(ReplacementSpeed, 0.f, 0.f));
+		Soldier.CurrentLocation.X += ReplacementSpeed;
 
 		//detect if soldier achieve destination
 		EndLocationX = Soldier.CurrentRow * SoldierDistance * -1;
-		if (FMath::IsNearlyEqual(EndLocationX, Soldier.CurrentLocationX, ReplacementSpeed + 1.f))
+		if (FMath::IsNearlyEqual(EndLocationX, Soldier.CurrentLocation.X, ReplacementSpeed + 1.f))
 		{
 			Soldier.bMoving = false;
 		}
@@ -137,4 +141,24 @@ void AArmy::MoveSoldiers(float DeltaTime)
 
 	double secondsElapsed = FPlatformTime::Seconds() - startSeconds;
 	TimeToMoveSoldiers = secondsElapsed;
+}
+
+void AArmy::FitToSurface()
+{
+	FVector Start;
+	FVector End;
+	FHitResult Hit;
+	FVector ZTranslation;
+	for (auto& Soldier : Soldiers)
+	{
+		Start = FVector(GetActorLocation().X + Soldier.CurrentLocation.X, GetActorLocation().Y + Soldier.CurrentLocation.Y, GetActorLocation().Z);
+		End = Start - FVector(0.f, 0.f, 1000.f);
+		GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECollisionChannel::ECC_Visibility);
+		if (Hit.IsValidBlockingHit())
+		{
+			ZTranslation = FVector(0.f, 0.f, FMath::Abs(Soldier.CurrentLocation.Z) + SoldierCubeExtents * 1.2f - Hit.Distance);
+			ArmyMesh->TranslateCube(Soldier.SoldierID, ZTranslation);
+			Soldier.CurrentLocation.Z += ZTranslation.Z;
+		}
+	}
 }

@@ -6,16 +6,23 @@
 #include "ProceduralMeshComponent.h"
 #include "CubesProceduralMeshComponent.generated.h"
 
-/**
- * 
- */
+
 UCLASS()
 class ARMYSIM_API UCubesProceduralMeshComponent : public UProceduralMeshComponent
 {
 	GENERATED_BODY()
 	
 public:
-	void GenerateCube(const FVector& CenterLocation, const float Extents, const int32 CubeIndex);
+	void AddCubeInfo(const FVector& CenterLocation, const float Extents, const int32 CubeIndex);
+	void GenerateCubes();
 
 	void TranslateCube(const int32 CubeIndex, const FVector& TranslationVector);
+	void RemoveCube(const int32 CubeIndex);
+
+private:
+	TArray<FVector> Vertices;
+	TArray<int32> Triangles;
+
+	void AddVertices(const FVector& CenterLocation, const float Extents);
+	void AddTriangles(const int32 CubeIndex);
 };

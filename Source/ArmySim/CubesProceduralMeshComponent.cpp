@@ -3,46 +3,17 @@
 
 #include "CubesProceduralMeshComponent.h"
 
-TArray<int32> CreateTriangles()
+
+
+void UCubesProceduralMeshComponent::AddCubeInfo(const FVector& CenterLocation, const float Extents, const int32 CubeIndex)
 {
-	TArray<int32> Triangles;
-	auto AddTriangles = [&Triangles](int32 V1, int32 V2, int32 V3) { 
-		Triangles.Add(V1);
-		Triangles.Add(V2);
-		Triangles.Add(V3);
-	};
-
-	//Back face
-	AddTriangles(0, 2, 3);
-	AddTriangles(3, 1, 0);
-
-	//Left face 
-	AddTriangles(0, 1, 4);
-	AddTriangles(4, 1, 5);
-
-	//Front face 
-	AddTriangles(4, 5, 7);
-	AddTriangles(7, 5, 6);
-
-	//Right face 
-	AddTriangles(7, 6, 3);
-	AddTriangles(3, 2, 7);
-
-	//Top face
-	AddTriangles(1, 3, 5);
-	AddTriangles(6, 5, 3);
-
-	//bottom face
-	AddTriangles(2, 0, 4);
-	AddTriangles(4, 7, 2);
-
-	return Triangles;
+	AddVertices(CenterLocation, Extents);
+	AddTriangles(CubeIndex);
 }
 
-void UCubesProceduralMeshComponent::GenerateCube(const FVector& CenterLocation, const float Extents, const int32 CubeIndex)
+void UCubesProceduralMeshComponent::AddVertices(const FVector& CenterLocation, const float Extents)
 {
 	const float ExtentsNegative = Extents * -1;
-	TArray<FVector> Vertices;
 	auto AddVertices = [&](int32 V1, int32 V2, int32 V3) {
 		Vertices.Add(CenterLocation + FVector(V1, V2, V3));
 	};
@@ -56,23 +27,63 @@ void UCubesProceduralMeshComponent::GenerateCube(const FVector& CenterLocation, 
 	AddVertices(Extents, ExtentsNegative, Extents); //upper front left - 5
 	AddVertices(Extents, Extents, Extents); //upper front right - 6
 	AddVertices(Extents, Extents, ExtentsNegative); //lower front right - 7
+}
 
-	CreateMeshSection(CubeIndex, Vertices, CreateTriangles(), TArray<FVector>(), TArray<FVector2D>(), TArray<FColor>(), TArray<FProcMeshTangent>(), true);
+void UCubesProceduralMeshComponent::AddTriangles(const int32 CubeIndex)
+{
+	auto AddTriangles = [&](int32 V1, int32 V2, int32 V3) { 
+		Triangles.Add(V1);
+		Triangles.Add(V2);
+		Triangles.Add(V3);
+	};
+	int32 TriangleIndex = CubeIndex * 8;
+	//Back face
+	AddTriangles(TriangleIndex, TriangleIndex + 2, TriangleIndex + 3);
+	AddTriangles(TriangleIndex + 3, TriangleIndex + 1, TriangleIndex + 0);
+
+	//Left face 
+	AddTriangles(TriangleIndex + 0, TriangleIndex + 1, TriangleIndex + 4);
+	AddTriangles(TriangleIndex + 4, TriangleIndex + 1, TriangleIndex + 5);
+
+	//Front face 
+	AddTriangles(TriangleIndex + 4, TriangleIndex + 5, TriangleIndex + 7);
+	AddTriangles(TriangleIndex + 7, TriangleIndex + 5, TriangleIndex + 6);
+
+	//Right face 
+	AddTriangles(TriangleIndex + 7, TriangleIndex + 6, TriangleIndex + 3);
+	AddTriangles(TriangleIndex + 3, TriangleIndex + 2, TriangleIndex + 7);
+
+	//Top face
+	AddTriangles(TriangleIndex + 1, TriangleIndex + 3, TriangleIndex + 5);
+	AddTriangles(TriangleIndex + 6, TriangleIndex + 5, TriangleIndex + 3);
+
+	//bottom face
+	AddTriangles(TriangleIndex + 2, TriangleIndex + 0, TriangleIndex + 4);
+	AddTriangles(TriangleIndex + 4, TriangleIndex + 7, TriangleIndex + 2);
+
+}
+
+void UCubesProceduralMeshComponent::GenerateCubes()
+{
+	CreateMeshSection(0, Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), TArray<FColor>(), TArray<FProcMeshTangent>(), false);
 }
 
 void UCubesProceduralMeshComponent::TranslateCube(const int32 CubeIndex, const FVector& TranslationVector)
 {
-	FProcMeshSection* MeshSection = GetProcMeshSection(CubeIndex);
-	if (MeshSection && MeshSection->ProcVertexBuffer.Num() > 0)
+	for (int32 i = CubeIndex * 8; i < CubeIndex * 8 + 8; i++)
 	{
-		TArray<FVector> UpdatedVertices;
-		for (FProcMeshVertex MeshVertex : MeshSection->ProcVertexBuffer)
-		{
-			//add all vertex positions TranslationVector
-			UpdatedVertices.Add(MeshVertex.Position + TranslationVector);
-		}
-
-		UpdateMeshSection(CubeIndex, UpdatedVertices, TArray<FVector>(), TArray<FVector2D>(), TArray<FColor>(), TArray<FProcMeshTangent>());
+		Vertices[i] += TranslationVector;
 	}
+	UpdateMeshSection(0, Vertices, TArray<FVector>(), TArray<FVector2D>(), TArray<FColor>(), TArray<FProcMeshTangent>());
 }
 
+void UCubesProceduralMeshComponent::RemoveCube(const int32 CubeIndex)
+{
+	for (int32 i = CubeIndex * 8; i < CubeIndex * 8 + 8; i++)
+	{
+		Vertices[i] = FVector();
+	}
+
+	UpdateMeshSection(0, Vertices, TArray<FVector>(), TArray<FVector2D>(), TArray<FColor>(), TArray<FProcMeshTangent>());
+
+}
